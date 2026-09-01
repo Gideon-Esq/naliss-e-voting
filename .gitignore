@@ -1,0 +1,28 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+coverage/
+
+# Local environment files (keep the documented template)
+.env
+.env.*
+!.env.example
+
+# Hosting and provider state
+.vercel/
+.neon
+.neon/
+
+# Local databases
+prisma/dev.db
+prisma/dev.db-journal
+prisma/*.db*
+
+# Logs, caches, and editor/OS files
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

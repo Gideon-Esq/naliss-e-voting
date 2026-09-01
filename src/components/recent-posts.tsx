@@ -1,0 +1,5 @@
+"use client";
+import { Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+type Post={id:string;title:string;status:"DRAFT"|"PUBLISHED";date:string|null};
+export function RecentPosts({posts}:{posts:Post[]}){const router=useRouter();async function remove(id:string){if(!confirm("Delete this post?"))return;const response=await fetch(`/api/admin/announcements?id=${encodeURIComponent(id)}`,{method:"DELETE"});if(response.ok)router.refresh()}return <section className="admin-card recent-posts"><div className="recent-posts-title"><div><h2>Recent Posts</h2><p>Your latest portal publications.</p></div><span>{posts.length} posts</span></div>{posts.map(post=><div className="post-row"key={post.id}><div><b>{post.title}</b><span className={`status ${post.status==="PUBLISHED"?"open":"upcoming"}`}>{post.status.toLowerCase()}</span><small>{post.date??"Not published"}</small></div><button disabled title="Editing requires the edit-post screen"><Pencil/></button><button onClick={()=>remove(post.id)}aria-label={`Delete ${post.title}`}><Trash2/></button></div>)}</section>}

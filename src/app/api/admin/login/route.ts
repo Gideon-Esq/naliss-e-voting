@@ -1,0 +1,3 @@
+import { cookies } from "next/headers"; import { NextResponse } from "next/server"; import { z } from "zod"; import { ADMIN_COOKIE,createAdminSession,validAdminPassword } from "@/lib/admin-auth";
+const schema=z.object({password:z.string().min(1).max(200)});export async function POST(request:Request){const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success||!validAdminPassword(parsed.data.password))return NextResponse.json({message:"Invalid administrator credentials."},{status:401});const session=await createAdminSession();(await cookies()).set(ADMIN_COOKIE,session.token,{httpOnly:true,sameSite:"strict",secure:process.env.NODE_ENV==="production",expires:session.expiresAt,path:"/"});return NextResponse.json({ok:true})}
+

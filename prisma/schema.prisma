@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum ElectionStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+enum PublicationStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Election {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  title         String
+  description   String
+  opensAt       DateTime
+  closesAt      DateTime
+  status        ElectionStatus @default(DRAFT)
+  positions     Position[]
+  ballots       Ballot[]
+  sessions      VotingSession[]
+  announcements Announcement[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  showCountdown Boolean        @default(true)
+  resultsPublishedAt DateTime?
+}
+
+model Position {
+  id          String      @id @default(cuid())
+  electionId  String
+  election    Election    @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  description String
+  sortOrder   Int
+  maxChoices  Int         @default(1)
+  candidates  Candidate[]
+  votes       Vote[]
+  nominations NominationInvite[]
+
+  @@unique([electionId, slug])
+  @@unique([electionId, sortOrder])
+}
+
+model Candidate {
+  id         String   @id @default(cuid())
+  positionId String
+  position   Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  slug       String   @unique
+  name       String
+  pka        String   @default("")
+  matriculationNumber String?
+  department String
+  level      String
+  photoUrl   String?
+  tagline    String
+  biography  String
+  manifesto  String
+  vision     String
+  mission    String
+  priorities String
+  verified   Boolean  @default(true)
+  votes      Vote[]
+  createdAt  DateTime @default(now())
+}
+
+enum NominationStatus {
+  DRAFT
+  SUBMITTED
+  REJECTED
+  APPROVED
+  REVOKED
+}
+
+model NominationInvite {
+  id                    String           @id @default(cuid())
+  tokenHash             String           @unique
+  candidateName         String
+  matriculationNumber   String
+  positionId            String
+  position              Position         @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  expiresAt             DateTime
+  status                NominationStatus @default(DRAFT)
+  phone                  String           @default("")
+  level                  String           @default("")
+  cgpa                   String           @default("")
+  pka                    String           @default("")
+  tagline                String           @default("")
+  biography              String           @default("")
+  manifesto              String           @default("")
+  mission                String           @default("")
+  vision                 String           @default("")
+  priorities             String           @default("[]")
+  passportData           String?
+  passportName           String?
+  studentIdData          String?
+  studentIdName          String?
+  transcriptData         String?
+  transcriptName         String?
+  signatureData          String?
+  signatureName          String?
+  declarationsAccepted   Boolean          @default(false)
+  candidateId            String?          @unique
+  receipt                String?          @unique
+  reviewNote             String           @default("")
+  reviewedAt             DateTime?
+  submittedAt            DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([matriculationNumber, status])
+}
+
+model Voter {
+  id                    String          @id @default(cuid())
+  matriculationNumber   String          @unique
+  surnameNormalizedHash String
+  displayName           String
+  eligible              Boolean         @default(true)
+  department            String          @default("")
+  level                 String          @default("")
+  ballots               Ballot[]
+  sessions              VotingSession[]
+  createdAt             DateTime        @default(now())
+}
+
+model VotingSession {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  voterId    String
+  voter      Voter    @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  electionId String
+  election   Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model Ballot {
+  id         String   @id @default(cuid())
+  receipt    String   @unique
+  electionId String
+  election   Election @relation(fields: [electionId], references: [id], onDelete: Restrict)
+  voterId    String
+  voter      Voter    @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  submittedAt DateTime @default(now())
+  votes      Vote[]
+
+  @@unique([electionId, voterId])
+}
+
+model Vote {
+  id          String    @id @default(cuid())
+  ballotId    String
+  ballot      Ballot    @relation(fields: [ballotId], references: [id], onDelete: Cascade)
+  positionId  String
+  position    Position  @relation(fields: [positionId], references: [id], onDelete: Restrict)
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@unique([ballotId, positionId])
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  electionId  String?
+  election    Election? @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  title       String
+  body        String
+  category    String            @default("Announcement")
+  featuredImage String?
+  status      PublicationStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

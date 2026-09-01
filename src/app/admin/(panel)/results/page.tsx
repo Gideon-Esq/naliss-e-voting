@@ -1,0 +1,12 @@
+import { VoteMonitorDashboard } from "@/components/vote-monitor-dashboard";
+import { db } from "@/lib/db";
+import { formatWat } from "@/lib/elections";
+
+export const dynamic="force-dynamic";
+
+export default async function AdminResults(){
+  const[election,eligible]=await Promise.all([db.election.findFirst({where:{status:"PUBLISHED"},include:{ballots:{select:{submittedAt:true},orderBy:{submittedAt:"asc"}},positions:{orderBy:{sortOrder:"asc"},include:{candidates:{orderBy:{name:"asc"},include:{_count:{select:{votes:true}}}}}}}}),db.voter.count({where:{eligible:true}})]);
+  if(!election)return <div className="admin-content"><h1>No published election</h1></div>;
+  const now=new Date();const ballots=election.ballots.length;const turnout=eligible?Number((ballots/eligible*100).toFixed(1)):0;const key=(date:Date)=>date.toLocaleDateString("en-CA",{timeZone:"Africa/Lagos"});const activity=Array.from({length:5},(_,index)=>{const date=new Date(now);date.setDate(date.getDate()-(4-index));return{key:key(date),label:date.toLocaleDateString("en-NG",{month:"short",day:"numeric",timeZone:"Africa/Lagos"}),count:0}});for(const ballot of election.ballots){const day=activity.find(item=>item.key===key(ballot.submittedAt));if(day)day.count++}const remainingMs=Math.max(0,election.closesAt.getTime()-now.getTime());const days=Math.floor(remainingMs/86400000),hours=Math.floor(remainingMs/3600000)%24;const latest=election.ballots.at(-1)?.submittedAt;const lastVote=latest?`${Math.max(0,Math.floor((now.getTime()-latest.getTime())/60000))} min ago`:"No votes yet";const positions=election.positions.map(position=>{const ranked=[...position.candidates].sort((a,b)=>b._count.votes-a._count.votes);const leader=ranked[0];return{id:position.id,title:position.title,total:position.candidates.reduce((sum,candidate)=>sum+candidate._count.votes,0),leader:leader?{name:leader.name,pka:leader.pka,votes:leader._count.votes,initials:leader.name.split(" ").map(part=>part[0]).join("").slice(0,2)}:null}});
+  return <VoteMonitorDashboard title={election.title}eligible={eligible}ballots={ballots}turnout={turnout}remaining={Math.max(0,eligible-ballots)}closesAt={formatWat(election.closesAt)}status={now<election.opensAt?"upcoming":now<=election.closesAt?"ongoing":"closed"}timeRemaining={remainingMs?`${days}d ${hours}h`:"Closed"}lastVote={lastVote}activity={activity.map(({label,count})=>({label,count}))}positions={positions}published={Boolean(election.resultsPublishedAt)}canPublish={election.closesAt<=now}/>;
+}
