@@ -730,11 +730,10 @@ function NominationDeadline({
   const deadline = new Date(expiresAt);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!enabled) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(timer);
-  }, [enabled]);
-  if (!enabled) return null;
+  }, [expiresAt]);
+  if (!expiresAt) return null;
   const totalSeconds = Math.max(
     0,
     Math.floor((deadline.getTime() - now) / 1_000),
