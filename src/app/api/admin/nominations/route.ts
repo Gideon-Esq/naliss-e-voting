@@ -10,7 +10,7 @@ const createSchema = z.object({
   candidateName: z.string().trim().min(3).max(120),
   matriculationNumber: z.string().trim().min(4).max(50),
   positionId: z.string().min(1),
-  validDays: z.coerce.number().int().min(1).max(90).default(14),
+  validDays: z.enum(["7", "14", "30", "THURSDAY_18"]).default("14"),
 });
 const reviewSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("APPROVE") }),
@@ -25,6 +25,24 @@ const slugify = (value: string) =>
     .normalize("NFKD")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+
+function nextThursdayAtSixWat(now = new Date()) {
+  const wat = new Date(now.getTime() + 60 * 60 * 1000);
+  const days = (4 - wat.getUTCDay() + 7) % 7;
+  let target = new Date(
+    Date.UTC(
+      wat.getUTCFullYear(),
+      wat.getUTCMonth(),
+      wat.getUTCDate() + days,
+      17,
+      0,
+      0,
+    ),
+  );
+  if (target.getTime() <= now.getTime())
+    target = new Date(target.getTime() + 7 * 86400000);
+  return target;
+}
 
 export async function GET(request: Request) {
   if (!(await isAdminAuthenticated()))
@@ -94,13 +112,17 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   const token = issueToken();
+  const expiresAt =
+    parsed.data.validDays === "THURSDAY_18"
+      ? nextThursdayAtSixWat()
+      : new Date(Date.now() + Number(parsed.data.validDays) * 86400000);
   const invite = await db.nominationInvite.create({
     data: {
       tokenHash: hashToken(token),
       candidateName: parsed.data.candidateName,
       matriculationNumber,
       positionId: position.id,
-      expiresAt: new Date(Date.now() + parsed.data.validDays * 86400000),
+      expiresAt,
     },
   });
   return NextResponse.json(

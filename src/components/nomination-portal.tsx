@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Clock3,
   Download,
   LockKeyhole,
   Save,
@@ -53,6 +54,7 @@ type Receipt = {
   level: string;
   cgpa: string;
   phone: string;
+  pka: string;
   passportData: string;
   tagline: string;
   biography: string;
@@ -294,13 +296,14 @@ export function NominationPortal({ token }: { token: string }) {
       ];
       if (
         !data.passportData ||
+        !data.pka.trim() ||
         !data.tagline ||
         data.biography.length < 50 ||
         lengths.some((length) => length < 400 || length > 1000) ||
         data.priorities.some((value) => value.trim().length < 2)
       ) {
         setError(
-          "Add a passport, biography, slogan, three priorities, and ensure manifesto, mission and vision are each 400–1000 characters.",
+          "Add a passport, PKA, biography, slogan, three priorities, and ensure manifesto, mission and vision are each 400–1000 characters.",
         );
         return;
       }
@@ -373,6 +376,7 @@ export function NominationPortal({ token }: { token: string }) {
   return (
     <NominationShell>
       <NominationSteps step={step} />
+      <NominationDeadline expiresAt={invite.expiresAt} />
       <main className="nomination-form-card">
         <div className="nomination-title">
           <small>STEP {step} OF 3</small>
@@ -456,11 +460,12 @@ export function NominationPortal({ token }: { token: string }) {
             />
             <div className="nomination-two">
               <label>
-                PKA (Politically Known As)
+                PKA (Politically Known As) *
                 <input
                   value={data.pka}
                   onChange={(e) => field("pka", e.target.value)}
-                  placeholder="Optional political name"
+                  placeholder="Enter the political name voters know you by"
+                  required
                 />
                 <small>This is the political name voters know you by.</small>
               </label>
@@ -532,7 +537,7 @@ export function NominationPortal({ token }: { token: string }) {
               </p>
             </div>
             <FileUpload
-              title="Student ID Card *"
+              title="Student ID Card or Any Means of Studentship Identification *"
               note="PDF, JPG or PNG · Max 4MB"
               name={data.studentIdName}
               onFile={(file) => attach("studentId", file)}
@@ -564,7 +569,7 @@ export function NominationPortal({ token }: { token: string }) {
             </div>
             <FileUpload
               title="Signature *"
-              note="PDF, JPG or PNG · Max 4MB"
+              note="Sign on a blank sheet of paper, then take a clear photo or scan and upload it · PDF, JPG or PNG · Max 4MB"
               name={data.signatureName}
               onFile={(file) => attach("signature", file)}
             />
@@ -690,6 +695,47 @@ function NominationShell({ children }: { children: React.ReactNode }) {
         </span>
       </footer>
     </div>
+  );
+}
+function NominationDeadline({ expiresAt }: { expiresAt: string }) {
+  const deadline = new Date(expiresAt);
+  const watDeadline = new Date(deadline.getTime() + 60 * 60 * 1000);
+  const isThursdaySixWat =
+    watDeadline.getUTCDay() === 4 &&
+    watDeadline.getUTCHours() === 18 &&
+    watDeadline.getUTCMinutes() === 0;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!isThursdaySixWat) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 15_000);
+    return () => window.clearInterval(timer);
+  }, [isThursdaySixWat]);
+  if (!isThursdaySixWat) return null;
+  const totalMinutes = Math.max(
+    0,
+    Math.ceil((deadline.getTime() - now) / 60_000),
+  );
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return (
+    <aside className="nomination-deadline" aria-live="polite">
+      <Clock3 />
+      <div>
+        <strong>Form closes Thursday at 6:00 p.m. WAT</strong>
+        <small>
+          {deadline.toLocaleString("en-NG", {
+            timeZone: "Africa/Lagos",
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })} WAT
+        </small>
+      </div>
+      <b>{hours}h {String(minutes).padStart(2, "0")}m remaining</b>
+    </aside>
   );
 }
 function NominationSteps({ step }: { step: number }) {
@@ -840,6 +886,10 @@ function NominationReceipt({ receipt }: { receipt: Receipt }) {
             <div>
               <dt>Phone Number</dt>
               <dd>{receipt.phone}</dd>
+            </div>
+            <div>
+              <dt>PKA</dt>
+              <dd>{receipt.pka}</dd>
             </div>
             <div>
               <dt>Submitted</dt>

@@ -227,6 +227,7 @@ export function NominationAdmin({
                 <option value="7">7 days</option>
                 <option value="14">14 days</option>
                 <option value="30">30 days</option>
+                <option value="THURSDAY_18">Until Thursday, 6:00 p.m. WAT</option>
               </select>
             </label>
           </div>
@@ -259,7 +260,14 @@ export function NominationAdmin({
             invitations.map((item) => (
               <article key={item.id}>
                 <div>
-                  <b>{item.candidateName}</b>
+                  <button
+                    type="button"
+                    className="candidate-name-review"
+                    onClick={() => openReview(item.id)}
+                    disabled={reviewBusy}
+                  >
+                    {item.candidateName}
+                  </button>
                   <small>
                     {item.matriculationNumber} · {item.position}
                   </small>
