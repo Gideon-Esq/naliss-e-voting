@@ -10,7 +10,8 @@ const createSchema = z.object({
   candidateName: z.string().trim().min(3).max(120),
   matriculationNumber: z.string().trim().min(4).max(50),
   positionId: z.string().min(1),
-  validDays: z.enum(["7", "14", "30", "THURSDAY_18"]).default("14"),
+  validDays: z.enum(["7", "14", "30", "CUSTOM"]).default("14"),
+  customExpiresAt: z.string().trim().optional(),
 });
 const reviewSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("APPROVE") }),
@@ -26,22 +27,12 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-function nextThursdayAtSixWat(now = new Date()) {
-  const wat = new Date(now.getTime() + 60 * 60 * 1000);
-  const days = (4 - wat.getUTCDay() + 7) % 7;
-  let target = new Date(
-    Date.UTC(
-      wat.getUTCFullYear(),
-      wat.getUTCMonth(),
-      wat.getUTCDate() + days,
-      17,
-      0,
-      0,
-    ),
-  );
-  if (target.getTime() <= now.getTime())
-    target = new Date(target.getTime() + 7 * 86400000);
-  return target;
+function watDate(value: string | undefined) {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  const date = new Date(Date.UTC(+year, +month - 1, +day, +hour - 1, +minute));
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export async function GET(request: Request) {
@@ -112,10 +103,15 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   const token = issueToken();
-  const expiresAt =
-    parsed.data.validDays === "THURSDAY_18"
-      ? nextThursdayAtSixWat()
-      : new Date(Date.now() + Number(parsed.data.validDays) * 86400000);
+  const customExpiry = watDate(parsed.data.customExpiresAt);
+  if (parsed.data.validDays === "CUSTOM" && (!customExpiry || customExpiry <= new Date()))
+    return NextResponse.json(
+      { message: "Choose a future expiry date and time in WAT." },
+      { status: 400 },
+    );
+  const expiresAt = parsed.data.validDays === "CUSTOM"
+    ? customExpiry!
+    : new Date(Date.now() + Number(parsed.data.validDays) * 86400000);
   const invite = await db.nominationInvite.create({
     data: {
       tokenHash: hashToken(token),
@@ -257,9 +253,13 @@ export async function DELETE(request: Request) {
       { status: 404 },
     );
   if (deleteCandidate) {
+    if (invite.status === "REJECTED") {
+      await db.nominationInvite.delete({ where: { id } });
+      return NextResponse.json({ ok: true });
+    }
     if (invite.status !== "APPROVED" || !invite.candidateId)
       return NextResponse.json(
-        { message: "Only an approved candidate can be deleted." },
+        { message: "Only an approved or rejected candidate can be deleted." },
         { status: 409 },
       );
     const referencedVote = await db.vote.findFirst({

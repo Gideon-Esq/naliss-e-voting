@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ message: "A ballot has already been submitted for this election.", code: "ALREADY_VOTED" }, { status: 409 });
     }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && ["P1001", "P2024", "P2028"].includes(error.code)) {
+      return NextResponse.json({ message: "The voting database is temporarily busy. Your ballot was not submitted; please try again.", code: "DATABASE_BUSY" }, { status: 503 });
+    }
     throw error;
   }
 }
-

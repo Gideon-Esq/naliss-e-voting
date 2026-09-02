@@ -96,6 +96,7 @@ model NominationInvite {
   phone                  String           @default("")
   level                  String           @default("")
   cgpa                   String           @default("")
+  permanentAddress       String           @default("")
   pka                    String           @default("")
   tagline                String           @default("")
   biography              String           @default("")

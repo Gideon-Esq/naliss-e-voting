@@ -32,16 +32,23 @@ export function Ballot({
     const selections = Object.entries(choices).map(
       ([positionId, candidateId]) => ({ positionId, candidateId }),
     );
-    const response = await fetch("/api/ballots", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ selections }),
-    });
-    const body = await response.json();
-    if (response.ok)
-      router.push(`/vote/success?receipt=${encodeURIComponent(body.receipt)}`);
-    else setError(body.message);
-    setBusy(false);
+    try {
+      const response = await fetch("/api/ballots", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ selections }),
+      });
+      const text = await response.text();
+      let body: { receipt?: string; message?: string } = {};
+      try { body = JSON.parse(text); } catch {}
+      if (response.ok && body.receipt)
+        router.push(`/vote/success?receipt=${encodeURIComponent(body.receipt)}`);
+      else setError(body.message || "The ballot server returned an invalid response. Please try again.");
+    } catch {
+      setError("Could not reach the ballot server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
   }
   return (
     <main className="ballot-page">

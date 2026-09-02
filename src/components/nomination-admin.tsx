@@ -30,6 +30,7 @@ type Review = Invitation & {
   phone: string;
   level: string;
   cgpa: string;
+  permanentAddress: string;
   pka: string;
   tagline: string;
   biography: string;
@@ -71,6 +72,7 @@ export function NominationAdmin({
   const [review, setReview] = useState<Review | null>(null);
   const [reviewBusy, setReviewBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [validity, setValidity] = useState("14");
   async function generate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -86,6 +88,7 @@ export function NominationAdmin({
     if (response.ok) {
       setLink(result.link);
       event.currentTarget.reset();
+      setValidity("14");
       router.refresh();
     } else setError(result.message);
     setBusy(false);
@@ -223,14 +226,25 @@ export function NominationAdmin({
             </label>
             <label>
               Link validity
-              <select name="validDays" defaultValue="14">
+              <select
+                name="validDays"
+                value={validity}
+                onChange={(event) => setValidity(event.target.value)}
+              >
                 <option value="7">7 days</option>
                 <option value="14">14 days</option>
                 <option value="30">30 days</option>
-                <option value="THURSDAY_18">Until Thursday, 6:00 p.m. WAT</option>
+                <option value="CUSTOM">Set date and time</option>
               </select>
             </label>
           </div>
+          {validity === "CUSTOM" && (
+            <label>
+              Link expiry date and time (WAT)
+              <input name="customExpiresAt" type="datetime-local" required />
+              <small>The candidate will see a live hours-and-minutes countdown on every form step.</small>
+            </label>
+          )}
           {error && <p className="error">{error}</p>}
           <button className="button wide" disabled={busy || !positions.length}>
             <Link2 />
@@ -300,7 +314,7 @@ export function NominationAdmin({
                     Review
                   </button>
                 )}
-                {state(item) === "APPROVED" && (
+                {["APPROVED", "REJECTED"].includes(state(item)) && (
                   <button onClick={() => removeCandidate(item)}>
                     <XCircle />
                     Delete
@@ -361,6 +375,7 @@ export function NominationAdmin({
                 <ReviewItem label="Phone" value={review.phone} />
                 <ReviewItem label="Part" value={review.level} />
                 <ReviewItem label="CGPA" value={review.cgpa} />
+                <ReviewItem label="Permanent Home Address" value={review.permanentAddress} />
                 <ReviewItem label="PKA" value={review.pka || "—"} />
                 <ReviewItem label="Slogan" value={review.tagline} />
               </dl>

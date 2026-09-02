@@ -21,6 +21,7 @@ type Draft = {
   phone: string;
   level: string;
   cgpa: string;
+  permanentAddress: string;
   pka: string;
   tagline: string;
   biography: string;
@@ -43,6 +44,7 @@ type Invite = {
   matriculationNumber: string;
   position: { id: string; title: string };
   expiresAt: string;
+  showExpiryCountdown: boolean;
   reviewNote: string;
   draft: Draft;
 };
@@ -53,6 +55,7 @@ type Receipt = {
   position: string;
   level: string;
   cgpa: string;
+  permanentAddress: string;
   phone: string;
   pka: string;
   passportData: string;
@@ -69,6 +72,7 @@ const blank: Draft = {
   phone: "",
   level: "",
   cgpa: "",
+  permanentAddress: "",
   pka: "",
   tagline: "",
   biography: "",
@@ -280,11 +284,12 @@ export function NominationPortal({ token }: { token: string }) {
       (!data.phone ||
         !data.level ||
         !data.cgpa ||
+        data.permanentAddress.trim().length < 10 ||
         Number(data.cgpa) < 0 ||
         Number(data.cgpa) > 5)
     ) {
       setError(
-        "Enter your phone number, CGPA (0.00–5.00), and select Part 1, Part 2 or Part 3.",
+        "Enter your phone number, permanent home address, CGPA (0.00–5.00), and select Part 1, Part 2 or Part 3.",
       );
       return;
     }
@@ -376,7 +381,10 @@ export function NominationPortal({ token }: { token: string }) {
   return (
     <NominationShell>
       <NominationSteps step={step} />
-      <NominationDeadline expiresAt={invite.expiresAt} />
+      <NominationDeadline
+        expiresAt={invite.expiresAt}
+        enabled={invite.showExpiryCountdown}
+      />
       <main className="nomination-form-card">
         <div className="nomination-title">
           <small>STEP {step} OF 3</small>
@@ -418,6 +426,21 @@ export function NominationPortal({ token }: { token: string }) {
                 onChange={(e) => field("phone", e.target.value)}
                 placeholder="+234 800 000 0000"
               />
+            </label>
+            <label>
+              Permanent Home Address *
+              <textarea
+                value={data.permanentAddress}
+                onChange={(e) => field("permanentAddress", e.target.value)}
+                placeholder="Enter your full permanent residential address"
+                minLength={10}
+                maxLength={500}
+                rows={3}
+              />
+              <small>
+                Private: visible only to you, the Electoral Commission, and on
+                your nomination printout.
+              </small>
             </label>
             <label>
               CGPA *
@@ -697,20 +720,21 @@ function NominationShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-function NominationDeadline({ expiresAt }: { expiresAt: string }) {
+function NominationDeadline({
+  expiresAt,
+  enabled,
+}: {
+  expiresAt: string;
+  enabled: boolean;
+}) {
   const deadline = new Date(expiresAt);
-  const watDeadline = new Date(deadline.getTime() + 60 * 60 * 1000);
-  const isThursdaySixWat =
-    watDeadline.getUTCDay() === 4 &&
-    watDeadline.getUTCHours() === 18 &&
-    watDeadline.getUTCMinutes() === 0;
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!isThursdaySixWat) return;
+    if (!enabled) return;
     const timer = window.setInterval(() => setNow(Date.now()), 15_000);
     return () => window.clearInterval(timer);
-  }, [isThursdaySixWat]);
-  if (!isThursdaySixWat) return null;
+  }, [enabled]);
+  if (!enabled) return null;
   const totalMinutes = Math.max(
     0,
     Math.ceil((deadline.getTime() - now) / 60_000),
@@ -721,7 +745,7 @@ function NominationDeadline({ expiresAt }: { expiresAt: string }) {
     <aside className="nomination-deadline" aria-live="polite">
       <Clock3 />
       <div>
-        <strong>Form closes Thursday at 6:00 p.m. WAT</strong>
+        <strong>Time remaining to complete this form</strong>
         <small>
           {deadline.toLocaleString("en-NG", {
             timeZone: "Africa/Lagos",
@@ -886,6 +910,10 @@ function NominationReceipt({ receipt }: { receipt: Receipt }) {
             <div>
               <dt>Phone Number</dt>
               <dd>{receipt.phone}</dd>
+            </div>
+            <div>
+              <dt>Permanent Home Address</dt>
+              <dd>{receipt.permanentAddress}</dd>
             </div>
             <div>
               <dt>PKA</dt>
