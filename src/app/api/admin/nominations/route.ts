@@ -220,7 +220,9 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   if (!(await isAdminAuthenticated()))
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  const id = new URL(request.url).searchParams.get("id");
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+  const deleteCandidate = url.searchParams.get("action") === "deleteCandidate";
   if (!id)
     return NextResponse.json(
       { message: "Missing invitation id." },
@@ -232,6 +234,30 @@ export async function DELETE(request: Request) {
       { message: "Invitation not found." },
       { status: 404 },
     );
+  if (deleteCandidate) {
+    if (invite.status !== "APPROVED" || !invite.candidateId)
+      return NextResponse.json(
+        { message: "Only an approved candidate can be deleted." },
+        { status: 409 },
+      );
+    const referencedVote = await db.vote.findFirst({
+      where: { candidateId: invite.candidateId },
+      select: { id: true },
+    });
+    if (referencedVote)
+      return NextResponse.json(
+        { message: "This candidate cannot be deleted because a submitted ballot references them." },
+        { status: 409 },
+      );
+    await db.$transaction([
+      db.nominationInvite.update({ where: { id }, data: { status: "REVOKED", candidateId: null } }),
+      db.candidate.delete({ where: { id: invite.candidateId } }),
+    ]);
+    revalidatePath("/candidates");
+    revalidatePath("/election");
+    revalidatePath("/");
+    return NextResponse.json({ ok: true });
+  }
   if (["SUBMITTED", "APPROVED"].includes(invite.status))
     return NextResponse.json(
       { message: "A submitted or approved nomination cannot be revoked." },
