@@ -119,6 +119,7 @@ export async function POST(request: Request) {
       matriculationNumber,
       positionId: position.id,
       expiresAt,
+      showCountdown: true,
     },
   });
   return NextResponse.json(

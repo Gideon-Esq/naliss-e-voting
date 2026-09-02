@@ -9,6 +9,7 @@ import {
   Link2,
   Printer,
   RotateCcw,
+  Trash2,
   UserPlus,
   X,
   XCircle,
@@ -316,7 +317,7 @@ export function NominationAdmin({
                 )}
                 {["APPROVED", "REJECTED"].includes(state(item)) && (
                   <button onClick={() => removeCandidate(item)}>
-                    <XCircle />
+                    <Trash2 />
                     Delete
                   </button>
                 )}

@@ -93,6 +93,7 @@ model NominationInvite {
   position              Position         @relation(fields: [positionId], references: [id], onDelete: Cascade)
   expiresAt             DateTime
   status                NominationStatus @default(DRAFT)
+  showCountdown         Boolean          @default(false)
   phone                  String           @default("")
   level                  String           @default("")
   cgpa                   String           @default("")

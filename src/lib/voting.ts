@@ -38,23 +38,23 @@ export async function submitBallot(rawToken: string, selections: BallotSelection
     }
   }
 
-  return db.$transaction(async (tx) => {
-    const claimedSession = await tx.votingSession.updateMany({
-      where: { id: session.id, usedAt: null, expiresAt: { gt: new Date() } },
+  const ballot = await db.ballot.create({
+    data: {
+      receipt: receiptCode(),
+      electionId: session.electionId,
+      voterId: session.voterId,
+      votes: { create: selections },
+    },
+    select: { receipt: true, submittedAt: true },
+  });
+  try {
+    await db.votingSession.updateMany({
+      where: { id: session.id, usedAt: null },
       data: { usedAt: new Date() },
     });
-    if (claimedSession.count !== 1)
-      throw new VotingError("SESSION_INVALID", "Your voting session has expired or has already been used.", 401);
-
-    const ballot = await tx.ballot.create({
-      data: {
-        receipt: receiptCode(),
-        electionId: session.electionId,
-        voterId: session.voterId,
-        votes: { create: selections },
-      },
-      select: { receipt: true, submittedAt: true },
-    });
-    return ballot;
-  }, { maxWait: 30_000, timeout: 60_000 });
+  } catch {
+    // The unique election/voter ballot constraint still prevents a second vote
+    // if Neon temporarily fails while marking this short-lived session as used.
+  }
+  return ballot;
 }

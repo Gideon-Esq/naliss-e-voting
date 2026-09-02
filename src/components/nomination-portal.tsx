@@ -731,16 +731,17 @@ function NominationDeadline({
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!enabled) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 15_000);
+    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(timer);
   }, [enabled]);
   if (!enabled) return null;
-  const totalMinutes = Math.max(
+  const totalSeconds = Math.max(
     0,
-    Math.ceil((deadline.getTime() - now) / 60_000),
+    Math.floor((deadline.getTime() - now) / 1_000),
   );
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
   return (
     <aside className="nomination-deadline" aria-live="polite">
       <Clock3 />
@@ -758,7 +759,20 @@ function NominationDeadline({
           })} WAT
         </small>
       </div>
-      <b>{hours}h {String(minutes).padStart(2, "0")}m remaining</b>
+      <div className="countdown-display">
+        <div className="countdown-unit">
+          <span className="countdown-number">{String(hours).padStart(2, "0")}</span>
+          <span className="countdown-label">HRS</span>
+        </div>
+        <div className="countdown-unit">
+          <span className="countdown-number">{String(minutes).padStart(2, "0")}</span>
+          <span className="countdown-label">MIN</span>
+        </div>
+        <div className="countdown-unit">
+          <span className="countdown-number">{String(seconds).padStart(2, "0")}</span>
+          <span className="countdown-label">SEC</span>
+        </div>
+      </div>
     </aside>
   );
 }

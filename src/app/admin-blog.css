@@ -533,11 +533,15 @@ body { font-family: inherit; }
 .candidate-name-review { justify-content: flex-start; padding: 0; color: #111 !important; font: inherit; font-weight: 800; text-align: left; }
 .candidate-name-review:hover,.candidate-name-review:focus-visible { color: var(--tertiary) !important; text-decoration: underline; }
 .nomination-deadline { max-width: 1120px; margin: -18px auto 28px; padding: 18px 22px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; color: #fff; background: var(--primary); border-radius: 12px; box-shadow: 0 8px 22px #4d00002b; }
-.nomination-deadline > svg { width: 26px; height: 26px; }
+.nomination-deadline > svg { width: 26px; height: 26px; color: #fff; }
 .nomination-deadline > div { display: grid; gap: 3px; }
-.nomination-deadline small { color: #ffe5e5; }
-.nomination-deadline > b { padding: 9px 13px; color: var(--primary); background: #fff7f7; border-radius: 8px; white-space: nowrap; }
+.nomination-deadline strong { color: #fff; font-size: 14px; font-weight: 600; }
+.nomination-deadline small { color: #fff; font-size: 12px; }
+.nomination-deadline .countdown-display { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.nomination-deadline .countdown-unit { display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; min-width: 50px; }
+.nomination-deadline .countdown-number { font-size: 18px; font-weight: 700; color: var(--primary); line-height: 1; }
+.nomination-deadline .countdown-label { font-size: 10px; color: var(--primary); margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 @media (max-width: 900px) { .nomination-deadline { margin: -5px 20px 25px; } }
-@media (max-width: 600px) { .nomination-deadline { grid-template-columns: auto 1fr; padding: 16px; } .nomination-deadline > b { grid-column: 1/-1; text-align: center; } }
+@media (max-width: 600px) { .nomination-deadline { grid-template-columns: auto 1fr; padding: 16px; } .nomination-deadline .countdown-display { grid-column: 1/-1; justify-content: center; } }
 @media (max-width: 1150px) { .monitor-stats { grid-template-columns: repeat(2, 1fr); } .monitor-overview { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .monitor-heading { flex-direction: column; } .monitor-stats { grid-template-columns: 1fr; } .monitor-toolbar { align-items: flex-start; flex-wrap: wrap; } .monitor-toolbar > strong { width: 100%; } .monitor-toolbar > span { border-left: 0; padding-left: 0; } .monitor-filters { flex-direction: column; } .monitor-filters label, .monitor-filters select { width: 100%; } .monitor-table-head { display: none; } .monitor-table-row { grid-template-columns: 1fr auto; gap: 8px 15px; } .monitor-table-row > div:nth-child(2), .table-participation { grid-column: 1/-1; } }

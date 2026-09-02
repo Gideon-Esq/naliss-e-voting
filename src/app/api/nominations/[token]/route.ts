@@ -26,14 +26,53 @@ function unavailable() { return NextResponse.json({ code: "DATABASE_UNAVAILABLE"
 
 export async function GET(_: Request, { params }: { params: Promise<{ token: string }> }) {
   try {
-    const { token } = await params; const invite = await retryDatabase(() => activeInvite(token));
+    const { token } = await params;
+    const invite = await retryDatabase(() =>
+      db.nominationInvite.findUnique({
+        where: { tokenHash: hashToken(token) },
+        include: { position: true },
+      })
+    ) as any;
     if (!invite) return NextResponse.json({ code: "INVALID", message: "This nomination link is invalid." }, { status: 410 });
     if (invite.status === "SUBMITTED") return NextResponse.json({ code: "SUBMITTED", message: "This nomination form has already been submitted and is awaiting Electoral Commission review." }, { status: 410 });
     if (invite.status === "APPROVED") return NextResponse.json({ code: "APPROVED", message: "This nomination has been approved and published on the candidate page." }, { status: 410 });
     if (invite.status === "REVOKED") return NextResponse.json({ code: "REVOKED", message: "This nomination link has been revoked by the Electoral Commission." }, { status: 410 });
     if (invite.expiresAt <= new Date()) return NextResponse.json({ code: "EXPIRED", message: "This nomination link has expired." }, { status: 410 });
-    return NextResponse.json({ candidateName: invite!.candidateName, matriculationNumber: invite!.matriculationNumber, position: { id: invite!.position.id, title: invite!.position.title }, expiresAt: invite!.expiresAt, showExpiryCountdown: invite!.expiresAt.getUTCSeconds() === 0 && invite!.expiresAt.getUTCMilliseconds() === 0, reviewNote: invite!.status === "REJECTED" ? invite!.reviewNote : "", draft: { phone: invite!.phone, level: invite!.level, cgpa: invite!.cgpa, permanentAddress: invite!.permanentAddress, pka: invite!.pka, tagline: invite!.tagline, biography: invite!.biography, manifesto: invite!.manifesto, mission: invite!.mission, vision: invite!.vision, priorities: JSON.parse(invite!.priorities), passportData: invite!.passportData, passportName: invite!.passportName, studentIdData: invite!.studentIdData, studentIdName: invite!.studentIdName, transcriptData: invite!.transcriptData, transcriptName: invite!.transcriptName, signatureData: invite!.signatureData, signatureName: invite!.signatureName, declarationsAccepted: invite!.declarationsAccepted } });
-  } catch (error) { if (isTransientDatabaseError(error)) return unavailable(); throw error; }
+    if (!["DRAFT", "REJECTED"].includes(invite.status) || invite.expiresAt <= new Date()) return NextResponse.json({ message: "This nomination link is no longer valid." }, { status: 410 });
+    return NextResponse.json({
+      candidateName: invite.candidateName,
+      matriculationNumber: invite.matriculationNumber,
+      position: { id: invite.position.id, title: invite.position.title },
+      expiresAt: invite.expiresAt,
+      showExpiryCountdown: true,
+      reviewNote: invite.status === "REJECTED" ? invite.reviewNote : "",
+      draft: {
+        phone: invite.phone,
+        level: invite.level,
+        cgpa: invite.cgpa,
+        permanentAddress: invite.permanentAddress,
+        pka: invite.pka,
+        tagline: invite.tagline,
+        biography: invite.biography,
+        manifesto: invite.manifesto,
+        mission: invite.mission,
+        vision: invite.vision,
+        priorities: JSON.parse(invite.priorities),
+        passportData: invite.passportData,
+        passportName: invite.passportName,
+        studentIdData: invite.studentIdData,
+        studentIdName: invite.studentIdName,
+        transcriptData: invite.transcriptData,
+        transcriptName: invite.transcriptName,
+        signatureData: invite.signatureData,
+        signatureName: invite.signatureName,
+        declarationsAccepted: invite.declarationsAccepted,
+      },
+    });
+  } catch (error) {
+    if (isTransientDatabaseError(error)) return unavailable();
+    throw error;
+  }
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ token: string }> }) {
