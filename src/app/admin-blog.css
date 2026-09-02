@@ -185,9 +185,9 @@ body { font-family: inherit; }
 .about-card p { max-width: 780px; margin: 0; color: var(--muted); font-size: 19px; line-height: 1.75; }
 .about-card strong { display: flex; align-items: center; gap: 9px; margin-top: 22px; color: var(--red); font-size: 17px; }
 .about-card strong svg { width: 20px; }
-.about-mark { justify-self: center; width: 150px; height: 150px; display: grid; place-items: center; align-content: center; gap: 7px; color: #fff; background: var(--red); border: 20px solid #fce2e2; border-radius: 50%; box-shadow: 0 0 0 1px #efbcbc, 0 6px 20px #80000024; }
-.about-mark svg { width: 48px; height: 48px; }
-.about-mark small { font-weight: 900; letter-spacing: 4px; }
+.about-mark { justify-self: center; width: 150px; aspect-ratio: 1; display: grid; place-items: center; align-content: center; gap: 7px; overflow: hidden; color: #fff; background: var(--red); border: 18px solid #fce2e2; border-radius: 50%; box-shadow: 0 0 0 1px #efbcbc, 0 6px 20px #80000024; }
+.about-mark svg { width: 46px; height: 46px; flex: none; }
+.about-mark small { max-width: 100%; padding-left: 3px; font-size: 11px; font-weight: 900; line-height: 1; letter-spacing: 3px; white-space: nowrap; }
 .about-team-heading, .blog-section-title { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin: 62px 0 26px; }
 .about-team-heading span, .blog-section-title span { color: var(--red); font-size: 13px; font-weight: 800; letter-spacing: 4px; }
 .about-team-heading h2, .blog-section-title h2 { margin: 3px 0 0; color: #09090b; font-size: 30px; }
@@ -244,6 +244,7 @@ body { font-family: inherit; }
 
 @media (max-width: 900px) {
   .about-card { grid-template-columns: 1fr 150px; padding: 36px; gap: 30px; }
+  .about-mark { width: 135px; border-width: 14px; }
   .about-team-grid, .blog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .blog-featured { grid-template-columns: 1fr; }
   .blog-image-wrap { min-height: 320px; }
@@ -251,7 +252,9 @@ body { font-family: inherit; }
 @media (max-width: 620px) {
   .about-page, .blog-page { padding-top: 26px; }
   .about-card { grid-template-columns: 1fr; padding: 28px 22px; }
-  .about-mark { grid-row: 1; width: 120px; height: 120px; justify-self: start; }
+  .about-mark { grid-row: 1; width: 120px; justify-self: start; gap: 5px; border-width: 10px; }
+  .about-mark svg { width: 42px; height: 42px; }
+  .about-mark small { padding-left: 2px; font-size: 10px; letter-spacing: 2px; }
   .about-card p { font-size: 16px; }
   .about-team-heading, .blog-section-title { display: block; margin-top: 45px; }
   .about-team-heading p, .blog-section-title p { margin-top: 10px; text-align: left; }

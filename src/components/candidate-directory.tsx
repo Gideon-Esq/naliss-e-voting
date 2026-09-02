@@ -72,7 +72,11 @@ export function CandidateDirectory({
             <span className="pill">{c.position.title}</span>
             <p>Library &amp; Information Science · {c.level}</p>
             <em>“{c.tagline}”</em>
-            <p>{c.biography}</p>
+            <p className="candidate-bio-preview">
+              {c.biography.length > 125
+                ? `${c.biography.slice(0, 125).trimEnd()}…`
+                : c.biography}
+            </p>
             <div>
               <Link href={`/candidates/${c.slug}`}>Manifesto</Link>
               <Link className="button" href={`/candidates/${c.slug}`}>
