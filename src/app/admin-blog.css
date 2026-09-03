@@ -375,6 +375,13 @@ body { font-family: inherit; }
 .article-body { color: #222; font-size: 17px; line-height: 1.8; }
 .article-body p { margin: 0 0 24px; }
 .article-body h2 { margin: 36px 0 8px; color: #08080a; font-size: 25px; line-height: 1.25; }
+.article-body h3 { margin: 28px 0 8px; color: #08080a; font-size: 21px; line-height: 1.3; }
+.article-body ul, .article-body ol { margin: 0 0 24px; padding-left: 28px; }
+.article-body li { margin: 8px 0; padding-left: 5px; }
+.article-body blockquote { margin: 24px 0; padding: 14px 18px; color: #5e2525; background: #fff7f7; border-left: 4px solid var(--tertiary); border-radius: 0 8px 8px 0; }
+.article-body hr { margin: 34px 0; border: 0; border-top: 1px solid var(--line); }
+.article-body a, .article-intro a { color: var(--tertiary); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.article-body u, .article-intro u { text-underline-offset: 3px; }
 .article-step { display: flex; align-items: flex-start; gap: 13px; margin: 13px 0; }
 .article-step > b { flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; color: #fff; background: var(--tertiary); border-radius: 50%; }
 .article-step p { margin: 0; }

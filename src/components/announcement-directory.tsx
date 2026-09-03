@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarCheck, CircleHelp, MessageSquareText, Radio, Search, ShieldCheck, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { plainTextFromMarkdown } from "@/components/markdown-content";
 
 type Post = { id: string; title: string; body: string; category: string; featuredImage: string | null; publishedAt: string | null };
 const PAGE_SIZE = 6;
@@ -19,7 +20,7 @@ const categoryStyle = (category: string) => {
 };
 
 const excerpt = (body: string, length: number) => {
-  const paragraph = body.split(/\n\s*\n|\n/).find(Boolean)?.trim() ?? body.trim();
+  const paragraph = plainTextFromMarkdown(body.split(/\n\s*\n|\n/).find(Boolean)?.trim() ?? body.trim());
   return paragraph.length > length ? `${paragraph.slice(0, length).trim()}…` : paragraph;
 };
 
