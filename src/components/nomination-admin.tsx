@@ -4,6 +4,7 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Download,
   Eye,
   FileText,
   Link2,
@@ -480,14 +481,25 @@ function DocumentLink({
   data: string | null;
 }) {
   return data ? (
-    <a href={data} target="_blank" rel="noreferrer">
-      <FileText />
-      <span>
-        <b>{label}</b>
-        <small>{name}</small>
-      </span>
-      Preview
-    </a>
+    <article className="review-document">
+      <div className="review-document-details">
+        <FileText />
+        <span>
+          <b>{label}</b>
+          <small>{name}</small>
+        </span>
+      </div>
+      <div className="review-document-actions">
+        <a href={data} target="_blank" rel="noreferrer">
+          <Eye />
+          Preview
+        </a>
+        <a href={data} download={name || label}>
+          <Download />
+          Download
+        </a>
+      </div>
+    </article>
   ) : (
     <p>{label}: Not uploaded</p>
   );
