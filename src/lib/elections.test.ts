@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { electionState } from "./elections";
+import { electionState, sortNalissOffices } from "./elections";
 
 describe("electionState", () => {
   const opens = new Date("2026-05-01T08:00:00Z");
@@ -11,3 +11,21 @@ describe("electionState", () => {
   });
 });
 
+describe("sortNalissOffices", () => {
+  it("uses the official NALISS office hierarchy", () => {
+    const positions = [
+      { title: "Sports Director", slug: "sports-director" },
+      { title: "President", slug: "president" },
+      { title: "Public Relations Officer", slug: "public-relations-officer" },
+      { title: "Social Director", slug: "social-director" },
+      { title: "Assistant General Secretary", slug: "assistant-general-secretary" },
+    ];
+    expect(sortNalissOffices(positions).map((position) => position.slug)).toEqual([
+      "president",
+      "assistant-general-secretary",
+      "social-director",
+      "public-relations-officer",
+      "sports-director",
+    ]);
+  });
+});

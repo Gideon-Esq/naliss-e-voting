@@ -1,5 +1,40 @@
 import { db, withDatabaseRetry } from "@/lib/db";
 
+const officeHierarchy = [
+  ["president"],
+  ["vice-president"],
+  ["general-secretary"],
+  ["assistant-general-secretary", "assistant-secretary"],
+  ["financial-secretary"],
+  ["social-director", "director-of-social", "director-of-socials"],
+  ["welfare-director", "director-of-welfare"],
+  ["public-relations-officer", "public-relation-officer", "pro"],
+  ["sports-director", "sport-director", "director-of-sport", "director-of-sports"],
+] as const;
+
+const officeRank = new Map<string, number>(
+  officeHierarchy.flatMap((aliases, index) => aliases.map((alias) => [alias, index] as const)),
+);
+
+const normalizeOffice = (value: string) => value
+  .trim()
+  .toLowerCase()
+  .replace(/&/g, "and")
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/(^-|-$)/g, "");
+
+type OrderedPosition = { slug?: string; title: string; sortOrder?: number };
+
+export function compareNalissOffices(left: OrderedPosition, right: OrderedPosition) {
+  const leftRank = officeRank.get(normalizeOffice(left.slug || left.title)) ?? 1000 + (left.sortOrder ?? 0);
+  const rightRank = officeRank.get(normalizeOffice(right.slug || right.title)) ?? 1000 + (right.sortOrder ?? 0);
+  return leftRank - rightRank || left.title.localeCompare(right.title);
+}
+
+export function sortNalissOffices<T extends OrderedPosition>(positions: readonly T[]) {
+  return [...positions].sort(compareNalissOffices);
+}
+
 export function electionState(opensAt: Date, closesAt: Date, now = new Date()) {
   if (now < opensAt) return "upcoming" as const;
   if (now > closesAt) return "closed" as const;
@@ -11,7 +46,7 @@ export function formatWat(value: Date) {
 }
 
 export async function getPublishedElection() {
-  return withDatabaseRetry(() => db.election.findFirst({
+  const election = await withDatabaseRetry(() => db.election.findFirst({
     where: { status: "PUBLISHED" },
     orderBy: { opensAt: "desc" },
     include: {
@@ -21,4 +56,5 @@ export async function getPublishedElection() {
       },
     },
   }));
+  return election ? { ...election, positions: sortNalissOffices(election.positions) } : null;
 }

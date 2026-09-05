@@ -11,10 +11,10 @@ const positions = [
   ["General Secretary", "general-secretary", "Handles correspondence, records and official documentation."],
   ["Assistant General Secretary", "assistant-general-secretary", "Supports the General Secretary in record-keeping duties."],
   ["Financial Secretary", "financial-secretary", "Keeps accurate records of association income and expenditure."],
-  ["Sports Director", "sports-director", "Coordinates sporting activities, competitions, and student fitness initiatives."],
-  ["Public Relations Officer", "public-relations-officer", "Coordinates public communications for the association."],
-  ["Welfare Director", "welfare-director", "Champions student welfare and inclusive support."],
   ["Social Director", "social-director", "Creates programmes that strengthen the student community."],
+  ["Welfare Director", "welfare-director", "Champions student welfare and inclusive support."],
+  ["Public Relations Officer", "public-relations-officer", "Coordinates public communications for the association."],
+  ["Sports Director", "sports-director", "Coordinates sporting activities, competitions, and student fitness initiatives."],
 ] as const;
 
 const candidateSeed = [

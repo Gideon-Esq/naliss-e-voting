@@ -13,7 +13,7 @@ type Candidate = {
   tagline: string;
   biography: string;
   level: string;
-  position: { title: string; slug: string };
+  position: { title: string; slug: string; sortOrder: number };
 };
 export function CandidateDirectory({
   candidates,
