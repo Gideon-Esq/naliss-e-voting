@@ -2,12 +2,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, CircleUserRound, Home, Info, LogIn, Menu, Users, Vote, X } from "lucide-react";
+import { BarChart3, Bell, CircleUserRound, Home, Info, LogIn, Menu, Users, Vote, X } from "lucide-react";
 import { Logo } from "./logo";
 
 const links = [
   ["/", "Home", Home], ["/election", "Election", Vote], ["/candidates", "Candidates", Users],
-  ["/announcements", "Announcements", Bell], ["/about", "About", Info],
+  ["/announcements", "Announcements", Bell], ["/results", "Results", BarChart3], ["/about", "About", Info],
 ] as const;
 
 export function SiteHeader() {

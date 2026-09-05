@@ -6,7 +6,7 @@ import { VOTING_COOKIE } from "@/lib/security";
 import { submitBallot, VotingError } from "@/lib/voting";
 
 const ballotSchema = z.object({
-  selections: z.array(z.object({ positionId: z.string().min(1), candidateId: z.string().min(1) })).min(1).max(30),
+  selections: z.array(z.object({ positionId: z.string().min(1), candidateId: z.string().min(1) })).max(30),
 });
 
 export async function POST(request: Request) {

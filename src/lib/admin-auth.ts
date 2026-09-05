@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { db } from "@/lib/db";
+import { db, withDatabaseRetry } from "@/lib/db";
 import { hashesEqual, hashToken, issueToken } from "@/lib/security";
 
 export const ADMIN_COOKIE = "naliss_admin_session";
@@ -22,15 +22,13 @@ export async function isAdminAuthenticated() {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (!token) return false;
   try {
-    const session = await db.adminSession.findUnique({
-      where: { tokenHash: hashToken(token) },
-    });
-    return Boolean(session && session.expiresAt > new Date());
-  } catch (error) {
-    console.error(
-      "Admin session lookup failed. Check the production database configuration and schema.",
-      error,
+    const session = await withDatabaseRetry(() =>
+      db.adminSession.findUnique({
+        where: { tokenHash: hashToken(token) },
+      }),
     );
+    return Boolean(session && session.expiresAt > new Date());
+  } catch {
     return false;
   }
 }

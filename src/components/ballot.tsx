@@ -27,6 +27,12 @@ export function Ballot({
   const [busy, setBusy] = useState(false);
   const position = positions[step];
   async function submit() {
+    if (
+      Object.keys(choices).length === 0 &&
+      !window.confirm(
+        "You have not selected any candidate. Submitting now will record a void vote for every position. Continue?",
+      )
+    ) return;
     setBusy(true);
     setError("");
     const selections = Object.entries(choices).map(
@@ -39,10 +45,10 @@ export function Ballot({
         body: JSON.stringify({ selections }),
       });
       const text = await response.text();
-      let body: { receipt?: string; message?: string } = {};
+      let body: { message?: string } = {};
       try { body = JSON.parse(text); } catch {}
-      if (response.ok && body.receipt)
-        router.push(`/vote/success?receipt=${encodeURIComponent(body.receipt)}`);
+      if (response.ok)
+        router.push("/vote/success");
       else setError(body.message || "The ballot server returned an invalid response. Please try again.");
     } catch {
       setError("Could not reach the ballot server. Check your connection and try again.");
@@ -70,8 +76,8 @@ export function Ballot({
           <p>Cast Your Vote</p>
           <h1>{position.title}</h1>
           <p>
-            Select one candidate for this position. You may skip if you choose
-            not to vote here.
+            Select one candidate for this position. If you skip this position,
+            it will be counted as a void vote.
           </p>
           <div className="ballot-candidates">
             {position.candidates.map((candidate, index) => (
@@ -98,6 +104,19 @@ export function Ballot({
               </button>
             ))}
           </div>
+          {choices[position.id] && (
+            <button
+              type="button"
+              className="clear-ballot-choice"
+              onClick={() => setChoices(current => {
+                const next = { ...current };
+                delete next[position.id];
+                return next;
+              })}
+            >
+              Clear selection and vote void for this position
+            </button>
+          )}
           <div className="ballot-nav">
             <button
               onClick={() => setStep(Math.max(0, step - 1))}
@@ -120,25 +139,35 @@ export function Ballot({
           {positions.map((p) => {
             const selected = p.candidates.find((c) => c.id === choices[p.id]);
             return (
-              selected && (
-                <div className="review" key={p.id}>
+              <div className={`review ${selected ? "" : "void"}`} key={p.id}>
+                <div>
                   <small>{p.title}</small>
-                  <b>{selected.name}</b>
-                  {selected.pka && (
+                  <b>{selected?.name ?? "Void vote"}</b>
+                  {selected?.pka ? (
                     <small>Politically Known As: {selected.pka}</small>
-                  )}
+                  ) : !selected ? (
+                    <small>No candidate selected</small>
+                  ) : null}
                 </div>
-              )
+                {selected && (
+                  <CandidatePhoto
+                    name={selected.name}
+                    src={selected.photoUrl}
+                    className="review-photo"
+                  />
+                )}
+              </div>
             );
           })}
           <p className="warning">
-            Please review your selections carefully. Your vote cannot be changed
-            after submission.
+            Every position without a selected candidate will be recorded as a
+            void vote. Review carefully: your ballot cannot be changed after
+            submission.
           </p>
           {error && <p className="error">{error}</p>}
           <button
             className="button wide"
-            disabled={busy || Object.keys(choices).length === 0}
+            disabled={busy}
             onClick={submit}
           >
             {busy ? "Submitting…" : "Submit My Ballot"}

@@ -8,7 +8,7 @@ import openGraphImage from "./opengraph-naliss.png";
 const raleway = Raleway({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: getConfiguredSiteUrl(),
+  metadataBase: getConfiguredSiteUrl() ?? new URL("http://localhost:3000"),
   title: "NALISS E-Voting",
   description: "Secure NALISS departmental elections",
   icons: { icon: "/favicon.ico", shortcut: "/favicon.ico" },

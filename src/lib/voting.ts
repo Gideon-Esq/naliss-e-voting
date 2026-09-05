@@ -23,8 +23,6 @@ export async function submitBallot(rawToken: string, selections: BallotSelection
   if (session.election.status !== "PUBLISHED" || electionState(session.election.opensAt, session.election.closesAt) !== "open") {
     throw new VotingError("ELECTION_NOT_OPEN", "Voting is not currently open.", 409);
   }
-  if (selections.length === 0) throw new VotingError("EMPTY_BALLOT", "Choose at least one candidate.");
-
   const uniquePositions = new Set(selections.map((item) => item.positionId));
   if (uniquePositions.size !== selections.length) {
     throw new VotingError("DUPLICATE_POSITION", "Only one candidate may be selected per position.");

@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, withDatabaseRetry } from "@/lib/db";
 
 export function electionState(opensAt: Date, closesAt: Date, now = new Date()) {
   if (now < opensAt) return "upcoming" as const;
@@ -11,7 +11,7 @@ export function formatWat(value: Date) {
 }
 
 export async function getPublishedElection() {
-  return db.election.findFirst({
+  return withDatabaseRetry(() => db.election.findFirst({
     where: { status: "PUBLISHED" },
     orderBy: { opensAt: "desc" },
     include: {
@@ -20,5 +20,5 @@ export async function getPublishedElection() {
         include: { candidates: { orderBy: { name: "asc" } } },
       },
     },
-  });
+  }));
 }
