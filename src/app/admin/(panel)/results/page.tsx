@@ -1,6 +1,6 @@
 import { VoteMonitorDashboard } from "@/components/vote-monitor-dashboard";
 import { db, withDatabaseRetry } from "@/lib/db";
-import { formatWat } from "@/lib/elections";
+import { formatWat, sortNalissOffices } from "@/lib/elections";
 
 export const dynamic="force-dynamic";
 
@@ -52,7 +52,7 @@ export default async function AdminResults() {
   const lastVote = latest
     ? `${Math.max(0, Math.floor((now.getTime() - latest.getTime()) / 60000))} min ago`
     : "No votes yet";
-  const positions = election.positions.map(position => {
+  const positions = sortNalissOffices(election.positions).map(position => {
     const candidates = [...position.candidates]
       .sort((a, b) => b._count.votes - a._count.votes || a.name.localeCompare(b.name))
       .map(candidate => ({

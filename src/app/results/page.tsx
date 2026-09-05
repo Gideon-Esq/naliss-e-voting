@@ -4,7 +4,7 @@ import { PublicResultsDashboard } from "@/components/public-results-dashboard";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db, withDatabaseRetry } from "@/lib/db";
-import { formatWat } from "@/lib/elections";
+import { formatWat, sortNalissOffices } from "@/lib/elections";
 
 export const dynamic="force-dynamic";
 
@@ -30,7 +30,7 @@ export default async function ResultsPage(){
   }
 
   const ballots = election._count.ballots;
-  const positions = election.positions.map(position => {
+  const positions = sortNalissOffices(election.positions).map(position => {
     const candidates = [...position.candidates].sort((a,b)=>b._count.votes-a._count.votes||a.name.localeCompare(b.name)).map(candidate=>({id:candidate.id,name:candidate.name,pka:candidate.pka,photoUrl:candidate.photoUrl,votes:candidate._count.votes}));
     const validVotes = candidates.reduce((sum,candidate)=>sum+candidate.votes,0);
     return {id:position.id,title:position.title,validVotes,voidVotes:Math.max(0,ballots-validVotes),candidates};
