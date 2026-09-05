@@ -72,8 +72,8 @@ async function main() {
 
   await db.voter.createMany({
     data: [
-      { matriculationNumber: "NALISS/2023/001", surnameNormalizedHash: hashSurname("Okafor"), displayName: "Chinedu Okafor", department: "Library & Information Science", level: "300 Level" },
-      { matriculationNumber: "NALISS/2023/002", surnameNormalizedHash: hashSurname("Bello"), displayName: "Maryam Bello", department: "Library & Information Science", level: "300 Level" },
+      { matriculationNumber: "NALISS/2023/001", surnameNormalizedHash: hashSurname("Okafor"), displayName: "Chinedu Okafor", level: "300 Level" },
+      { matriculationNumber: "NALISS/2023/002", surnameNormalizedHash: hashSurname("Bello"), displayName: "Maryam Bello", level: "300 Level" },
     ],
   });
 

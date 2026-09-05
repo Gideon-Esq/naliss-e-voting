@@ -131,7 +131,6 @@ model Voter {
   surnameNormalizedHash String
   displayName           String
   eligible              Boolean         @default(true)
-  department            String          @default("")
   level                 String          @default("")
   ballots               Ballot[]
   sessions              VotingSession[]
